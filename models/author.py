@@ -1,4 +1,3 @@
-
 from database.connection import get_db_connection
 
 class Author:
@@ -17,7 +16,8 @@ class Author:
         except Exception as e:
             print(f"An error occurred: {e}")
         finally:
-            conn.close()
+            if conn:
+                conn.close()
 
     @staticmethod
     def get_by_id(author_id):
@@ -27,9 +27,25 @@ class Author:
             cursor.execute('SELECT * FROM authors WHERE id = ?', (author_id,))
             row = cursor.fetchone()
             if row:
-                return Author(row[1])
+                author = Author(row[1])
+                author.id = row[0]
+                return author
             return None
         except Exception as e:
             print(f"An error occurred: {e}")
         finally:
-            conn.close()
+            if conn:
+                conn.close()
+
+    def articles(self):
+        try:
+            conn = get_db_connection()
+            cursor = conn.cursor()
+            cursor.execute('SELECT * FROM articles WHERE author_id = ?', (self.id,))
+            return cursor.fetchall()
+        except Exception as e:
+            print(f"An error occurred: {e}")
+            return []
+        finally:
+            if conn:
+                conn.close()

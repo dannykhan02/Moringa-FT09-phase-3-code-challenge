@@ -16,6 +16,7 @@ def create_tables():
             name TEXT NOT NULL,
             category TEXT NOT NULL
         )
+                   ALTER TABLE articles MODIFY COLUMN content TEXT NULL;
     ''')
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS articles (

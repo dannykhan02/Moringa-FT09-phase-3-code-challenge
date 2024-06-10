@@ -1,4 +1,5 @@
 from database.connection import get_db_connection
+from models.author import Author
 
 class Magazine:
     def __init__(self, name, category):
@@ -18,7 +19,8 @@ class Magazine:
         except Exception as e:
             print(f"An error occurred: {e}")
         finally:
-            conn.close()
+            if conn:
+                conn.close()
 
     @staticmethod
     def get_by_id(magazine_id):
@@ -35,7 +37,8 @@ class Magazine:
         except Exception as e:
             print(f"An error occurred: {e}")
         finally:
-            conn.close()
+            if conn:
+                conn.close()
 
     def articles(self):
         try:
@@ -45,5 +48,23 @@ class Magazine:
             return cursor.fetchall()
         except Exception as e:
             print(f"An error occurred: {e}")
+            return []
         finally:
-            conn.close()
+            if conn:
+                conn.close()
+
+    def contributors(self):
+        try:
+            conn = get_db_connection()
+            cursor = conn.cursor()
+            cursor.execute('SELECT DISTINCT authors.* FROM authors '
+                           'JOIN articles ON authors.id = articles.author_id '
+                           'WHERE articles.magazine_id = ?', (self.id,))
+            authors_data = cursor.fetchall()
+            return [Author(*data) for data in authors_data]
+        except Exception as e:
+            print(f"An error occurred: {e}")
+            return []
+        finally:
+            if conn:
+                conn.close()
