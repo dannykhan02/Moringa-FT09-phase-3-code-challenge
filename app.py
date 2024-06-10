@@ -1,70 +1,92 @@
-from database.setup import create_tables
-from database.connection import get_db_connection
-from models.article import Article
+
 from models.author import Author
 from models.magazine import Magazine
+from models.article import Article
+
+def add_author():
+    name = input("Enter author name: ")
+    author = Author(name)
+    print(f"Author '{name}' added with ID {author.id}")
+
+def add_magazine():
+    name = input("Enter magazine name: ")
+    category = input("Enter magazine category: ")
+    magazine = Magazine(name, category)
+    print(f"Magazine '{name}' added with ID {magazine.id}")
+
+def add_article():
+    author_id = int(input("Enter author ID: "))
+    magazine_id = int(input("Enter magazine ID: "))
+    title = input("Enter article title: ")
+
+    author = Author.get_by_id(author_id)
+    magazine = Magazine.get_by_id(magazine_id)
+
+    if author and magazine:
+        article = Article(author, magazine, title)
+        print(f"Article '{title}' added with ID {article.id}")
+    else:
+        print("Invalid author or magazine ID")
+
+def search_author_articles():
+    author_id = int(input("Enter author ID: "))
+    author = Author.get_by_id(author_id)
+    if author:
+        articles = author.articles()
+        for article in articles:
+            print(f"Article ID: {article[0]}, Title: {article[1]}")
+    else:
+        print("Author not found")
+
+def search_magazine_articles():
+    magazine_id = int(input("Enter magazine ID: "))
+    magazine = Magazine.get_by_id(magazine_id)
+    if magazine:
+        articles = magazine.articles()
+        for article in articles:
+            print(f"Article ID: {article[0]}, Title: {article[1]}")
+    else:
+        print("Magazine not found")
+
+def search_magazine_contributors():
+    magazine_id = int(input("Enter magazine ID: "))
+    magazine = Magazine.get_by_id(magazine_id)
+    if magazine:
+        contributors = magazine.contributors()
+        for contributor in contributors:
+            print(f"Author ID: {contributor[0]}, Name: {contributor[1]}")
+    else:
+        print("Magazine not found")
 
 def main():
-    # Initialize the database and create tables
-    create_tables()
+    while True:
+        print("\nPlease select an option:")
+        print("1. Register a new Author")
+        print("2. Register a new Magazine")
+        print("3. Create a new Article")
+        print("4. Find Articles by Author")
+        print("5. Find Articles by Magazine")
+        print("6. Find Contributors to a Magazine")
+        print("7. Exit the Program")
+        choice = input("Your choice: ")
 
-    # Collect user input
-    author_name = input("Enter author's name: ")
-    magazine_name = input("Enter magazine name: ")
-    magazine_category = input("Enter magazine category: ")
-    article_title = input("Enter article title: ")
-    article_content = input("Enter article content: ")
+        if choice == '1':
+            add_author()
+        elif choice == '2':
+            add_magazine()
+        elif choice == '3':
+            add_article()
+        elif choice == '4':
+            search_author_articles()
+        elif choice == '5':
+            search_magazine_articles()
+        elif choice == '6':
+            search_magazine_contributors()
+        elif choice == '7':
+            print("Exiting the program. Goodbye!")
+            break
+        else:
+            print("Invalid choice. Please enter a number between 1 and 7.")
 
-    # Connect to the database
-    conn = get_db_connection()
-    cursor = conn.cursor()
-
-
-    '''
-        The following is just for testing purposes, 
-        you can modify it to meet the requirements of your implmentation.
-    '''
-
-    # Create an author
-    cursor.execute('INSERT INTO authors (name) VALUES (?)', (author_name,))
-    author_id = cursor.lastrowid # Use this to fetch the id of the newly created author
-
-    # Create a magazine
-    cursor.execute('INSERT INTO magazines (name, category) VALUES (?,?)', (magazine_name, magazine_category))
-    magazine_id = cursor.lastrowid # Use this to fetch the id of the newly created magazine
-
-    # Create an article
-    cursor.execute('INSERT INTO articles (title, content, author_id, magazine_id) VALUES (?, ?, ?, ?)',
-                   (article_title, article_content, author_id, magazine_id))
-
-    conn.commit()
-
-    # Query the database for inserted records. 
-    # The following fetch functionality should probably be in their respective models
-
-    cursor.execute('SELECT * FROM magazines')
-    magazines = cursor.fetchall()
-
-    cursor.execute('SELECT * FROM authors')
-    authors = cursor.fetchall()
-
-    cursor.execute('SELECT * FROM articles')
-    articles = cursor.fetchall()
-
-    conn.close()
-
-    # Display results
-    print("\nMagazines:")
-    for magazine in magazines:
-        print(Magazine(magazine["id"], magazine["name"], magazine["category"]))
-
-    print("\nAuthors:")
-    for author in authors:
-        print(Author(author["id"], author["name"]))
-
-    print("\nArticles:")
-    for article in articles:
-        print(Article(article["id"], article["title"], article["content"], article["author_id"], article["magazine_id"]))
-
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()
